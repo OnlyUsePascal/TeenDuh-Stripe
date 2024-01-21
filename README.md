@@ -1,0 +1,1 @@
+# TEENDUH Stripe Payment server
