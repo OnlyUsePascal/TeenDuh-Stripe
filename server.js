@@ -7,20 +7,28 @@ const path = require("path");
 const app = express();
 const stripe = require('stripe')(stripePriKey);
 
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.get("/", (req, res, next) => {
   res.send('fare well my friend');
 });
 
 app.post('/payment-sheet', async (req, res, next) => {
   // Use an existing Customer ID if this is a returning customer.
+  // let price = req.body.price;
+  console.log(req.body);
+  let price = parseInt(req.body.price);
+  console.log(`price = ${price}`);
+  // res.send('oke');
+  
   const customer = await stripe.customers.create();
   const ephemeralKey = await stripe.ephemeralKeys.create(
     {customer: customer.id},
     {apiVersion: '2023-10-16'}
   );
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1099,
-    currency: 'dollar',
+    amount: price,
+    currency: 'usd',
     customer: customer.id,
     // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
     automatic_payment_methods: {
@@ -29,6 +37,7 @@ app.post('/payment-sheet', async (req, res, next) => {
   });
 
   res.json({
+    amount: price,
     paymentIntent: paymentIntent.client_secret,
     ephemeralKey: ephemeralKey.secret,
     customer: customer.id,
